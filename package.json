@@ -4,17 +4,24 @@
   "description": "handy wrapper around fetch + helpers",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
+    "build:check": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "fetch",
     "api",
-    "functional"
+    "functional",
+    "ajax"
+  ],
+  "files": [
+    "lib"
   ],
   "author": "Bhavdeep Dhanjal <dhanjalbhavdeep@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^25.1.3",
+    "@types/node": "^13.7.7",
     "jest": "^25.1.0",
     "typescript": "^3.8.3"
   }
