@@ -1,10 +1,7 @@
-type httpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
+type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
 
-const isHeadOrGet = (verb: httpVerbs) => verb === 'HEAD' || verb === 'GET'
+const isHeadOrGet = (verb: HttpVerbs) => verb === 'HEAD' || verb === 'GET'
 
-// TODO: bake in errors as rejection
-// TODO: creation of instances
-// TODO: add reasonable defaults
 // TODO: add a timeout
 // TODO: interceptors
 
@@ -31,7 +28,7 @@ interface FetchyResponse extends Response {
   text(): Promise<string>
 }
 
-const attachTransformsToResponse = async (
+const attachBodyTransformsToResponse = async (
   _response: Response
 ): Promise<FetchyResponse> => {
   let response: FetchyResponse = _response
@@ -41,9 +38,31 @@ const attachTransformsToResponse = async (
   return response
 }
 
+const transformResponse = (response: Response): Promise<FetchyResponse> => {
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  return attachBodyTransformsToResponse(response)
+}
+
+interface Meta {
+  _fetch: typeof window.fetch
+  verb: HttpVerbs
+  baseResource?: string
+  init?: RequestInit
+}
+
+interface Defaults {
+  baseResource?: string
+  init?: RequestInit
+  interceptors?: any
+  timeout?: number
+}
+
+// TODO: add a meta object { fetch, verb, defaults }
 const originalFetch = async (
   _fetch: typeof window.fetch,
-  verb: httpVerbs,
+  verb: HttpVerbs,
   resource: string,
   init?: RequestInit
 ) => {
@@ -52,12 +71,12 @@ const originalFetch = async (
     ...init,
   }
   const response = await _fetch(resource, _init)
-  return attachTransformsToResponse(response)
+  return transformResponse(response)
 }
 
 const jsonBodyFirstFetch = async (
   _fetch: typeof window.fetch,
-  verb: httpVerbs,
+  verb: HttpVerbs,
   resource: string,
   body?: Json,
   init?: RequestInit
@@ -69,7 +88,7 @@ const jsonBodyFirstFetch = async (
   }
 
   const response = await _fetch(resource, _init)
-  return attachTransformsToResponse(response)
+  return transformResponse(response)
 }
 
 function instance(
@@ -84,14 +103,14 @@ function instance(
   body?: Json,
   init?: RequestInit
 ) => Promise<FetchyResponse>
-function instance(_fetch: typeof window.fetch, verb: httpVerbs) {
+function instance(_fetch: typeof window.fetch, verb: HttpVerbs) {
   if (isHeadOrGet(verb)) {
     return originalFetch.bind(null, _fetch, verb)
   }
   return jsonBodyFirstFetch.bind(null, _fetch, verb)
 }
 
-function init() {
+function initialize(defaults?: Defaults) {
   return {
     get: instance(fetch, 'GET'),
     post: instance(fetch, 'POST'),
@@ -101,5 +120,12 @@ function init() {
     head: instance(fetch, 'HEAD'),
   }
 }
+export function create(
+  baseResource: string,
+  interceptors: any,
+  init?: RequestInit
+) {
+  return initialize({ baseResource, interceptors, init })
+}
 
-export default init()
+export default initialize()
