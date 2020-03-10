@@ -16,17 +16,24 @@ const bodyTransform = [
   'text',
 ] as const
 
+interface Json {
+  [x: string]: string | number | boolean | Date | Json | JsonArray
+}
+
+interface JsonArray
+  extends Array<string | number | boolean | Date | Json | JsonArray> {}
+
 interface FetchyResponse extends Response {
   arrayBuffer(): Promise<ArrayBuffer>
   blob(): Promise<Blob>
   formData(): Promise<FormData>
-  json(): Promise<JSON>
+  json<T>(): Promise<T>
   text(): Promise<string>
 }
 
 const instance = (fetch: typeof window.fetch) => (verb: httpVerbs) => async (
   resource: string,
-  body?: RequestInit['body'],
+  body?: Json,
   init?: Omit<RequestInit, 'body'>
 ): Promise<FetchyResponse> => {
   const _init: RequestInit = {
