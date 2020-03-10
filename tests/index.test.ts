@@ -6,15 +6,65 @@ import fetch from 'node-fetch'
 const createTestServer = require('create-test-server')
 import fetchy from '../src'
 
-describe('fetchy', () => {
-  it('should run the GET request', async done => {
-    const server = await createTestServer()
+describe('fetchy hitting the server', () => {
+  let server: any
+  beforeAll(async () => {
+    server = await createTestServer()
+
     server.get('/', (_req: any, res: any) => {
       res.end()
     })
 
-    expect((await fetchy.get(server.url)).ok).toEqual(true)
+    server.post('/', (_req: any, res: any) => {
+      res.end()
+    })
+
+    server.put('/', (_req: any, res: any) => {
+      res.end()
+    })
+
+    server.patch('/', (_req: any, res: any) => {
+      res.end()
+    })
+
+    server.delete('/', (_req: any, res: any) => {
+      res.end()
+    })
+    server.head('/', (_req: any, res: any) => {
+      res.end()
+    })
+  })
+
+  afterAll(async () => {
     await server.close()
+  })
+  it('should run the GET request', async done => {
+    expect((await fetchy.get(server.url)).ok).toEqual(true)
+    done()
+  })
+
+  it('should run the POST request', async done => {
+    expect((await fetchy.post(server.url)).ok).toEqual(true)
+    done()
+  })
+
+  it('should run the PUT request', async done => {
+    expect((await fetchy.put(server.url)).ok).toEqual(true)
+    done()
+  })
+
+  it('should run the PATCH request', async done => {
+    expect((await fetchy.patch(server.url)).ok).toEqual(true)
+    done()
+  })
+
+  it('should run the DELETE request', async done => {
+    expect((await fetchy.delete(server.url)).ok).toEqual(true)
+    done()
+  })
+
+  it('should run the HEAD request', async done => {
+    expect((await fetchy.head(server.url)).ok).toEqual(true)
     done()
   })
 })
