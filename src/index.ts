@@ -3,7 +3,11 @@ type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
 const isHeadOrGet = (verb: HttpVerbs) => verb === 'HEAD' || verb === 'GET'
 
 // TODO: add a timeout
-// TODO: interceptors
+// TODO: convert all resource type to Request | string
+// TODO: cancel handler
+// TODO: deep merge init
+// TODO: define reasonable defaults
+// TODO: extract types to another file
 
 const bodyTransform = [
   'arrayBuffer',
@@ -55,7 +59,7 @@ interface Meta {
 interface Defaults {
   baseResource?: string
   init?: RequestInit
-  interceptors?: any
+  interceptors?: (resource: RequestInfo, init?: RequestInit) => any
   timeout?: number
 }
 
@@ -110,22 +114,29 @@ function instance(_fetch: typeof window.fetch, verb: HttpVerbs) {
   return jsonBodyFirstFetch.bind(null, _fetch, verb)
 }
 
-function initialize(defaults?: Defaults) {
+function initialize(defaults: Defaults) {
+  const _fetch =
+    defaults.interceptors == undefined
+      ? window.fetch
+      : ((originalFetch, interceptors) => {
+          return (resource: RequestInfo, init?: RequestInit) => {
+            interceptors(resource, init)
+            const result = originalFetch.call(null, resource, init)
+            return result
+          }
+        })(fetch, defaults.interceptors)
+
   return {
-    get: instance(fetch, 'GET'),
-    post: instance(fetch, 'POST'),
-    put: instance(fetch, 'PUT'),
-    delete: instance(fetch, 'DELETE'),
-    patch: instance(fetch, 'PATCH'),
-    head: instance(fetch, 'HEAD'),
+    get: instance(_fetch, 'GET'),
+    post: instance(_fetch, 'POST'),
+    put: instance(_fetch, 'PUT'),
+    delete: instance(_fetch, 'DELETE'),
+    patch: instance(_fetch, 'PATCH'),
+    head: instance(_fetch, 'HEAD'),
   }
 }
-export function create(
-  baseResource: string,
-  interceptors: any,
-  init?: RequestInit
-) {
+export function create({ baseResource, interceptors, init }: Defaults) {
   return initialize({ baseResource, interceptors, init })
 }
 
-export default initialize()
+export default initialize({})
