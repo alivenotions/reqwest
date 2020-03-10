@@ -8,7 +8,7 @@ const isHeadOrGet = (verb: httpVerbs) => verb === 'HEAD' || verb === 'GET'
 // TODO: add a timeout
 // TODO: interceptors
 
-const instance = (fetch: typeof window.fetch) => (verb: httpVerbs) => (
+const instance = (fetch: typeof window.fetch) => (verb: httpVerbs) => async (
   resource: string,
   body?: RequestInit['body'],
   init?: Omit<RequestInit, 'body'>
@@ -18,10 +18,11 @@ const instance = (fetch: typeof window.fetch) => (verb: httpVerbs) => (
     ...(body && isHeadOrGet(verb) && { body: JSON.stringify(body) }),
     ...(init && init),
   }
-  return fetch(resource, _init)
+  const response = await fetch(resource, _init)
+  return response
 }
 
-const defaultInstance = instance(window.fetch)
+const defaultInstance = instance(fetch)
 
 export default {
   get: defaultInstance('GET'),
