@@ -2,6 +2,12 @@ type httpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
 
 const isHeadOrGet = (verb: httpVerbs) => verb === 'HEAD' || verb === 'GET'
 
+// TODO: bake in errors as rejection
+// TODO: creation of instances
+// TODO: add reasonable defaults
+// TODO: add a timeout
+// TODO: interceptors
+
 const instance = (fetch: typeof window.fetch) => (verb: httpVerbs) => (
   resource: string,
   body?: RequestInit['body'],
