@@ -37,7 +37,7 @@ const attachBodyTransformsToResponse = async (
 ): Promise<FetchyResponse> => {
   let response: FetchyResponse = _response
   for (const methods of bodyTransform) {
-    response[methods] = await _response[methods]()
+    response[methods] = async () => await _response.clone()[methods]()
   }
   return response
 }
@@ -117,7 +117,7 @@ function instance(_fetch: typeof window.fetch, verb: HttpVerbs) {
 function initialize(defaults: Defaults) {
   const _fetch =
     defaults.interceptors == undefined
-      ? window.fetch
+      ? fetch
       : ((originalFetch, interceptors) => {
           return (resource: RequestInfo, init?: RequestInit) => {
             interceptors(resource, init)
