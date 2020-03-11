@@ -1,127 +1,17 @@
-type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
+import {
+  Defaults,
+  Meta,
+  GetHeadRequest,
+  BodyFirstRequest,
+  HttpVerbs,
+  FetchyResponse,
+  Json,
+} from './interface'
 
-const isHeadOrGet = (verb: HttpVerbs): verb is 'HEAD' | 'GET' =>
-  verb === 'HEAD' || verb === 'GET'
+const bodyTransform = ['arrayBuffer', 'blob', 'formData', 'json', 'text'] as const
 
-// TODO: add a timeout
-// TODO: convert all resource type to Request | string
-// TODO: cancel handler
-// TODO: deep merge init
-// TODO: define reasonable defaults
-// TODO: extract types to another file
-
-const bodyTransform = [
-  'arrayBuffer',
-  'blob',
-  'formData',
-  'json',
-  'text',
-] as const
-
-interface Json {
-  [x: string]: string | number | boolean | Date | Json | JsonArray
-}
-
-interface JsonArray
-  extends Array<string | number | boolean | Date | Json | JsonArray> {}
-
-interface FetchyResponse extends Response {
-  arrayBuffer(): Promise<ArrayBuffer>
-  blob(): Promise<Blob>
-  formData(): Promise<FormData>
-  json<T>(): Promise<T>
-  text(): Promise<string>
-}
-
-const attachBodyTransformsToResponse = async (
-  _response: Response
-): Promise<FetchyResponse> => {
-  let response: FetchyResponse = _response
-  for (const methods of bodyTransform) {
-    response[methods] = async () => await _response.clone()[methods]()
-  }
-  return response
-}
-
-const transformResponse = (response: Response): Promise<FetchyResponse> => {
-  if (!response.ok) {
-    throw new Error(response.statusText)
-  }
-  return attachBodyTransformsToResponse(response)
-}
-
-interface Meta {
-  _fetch: typeof window.fetch
-  baseResource?: string
-  init?: RequestInit
-}
-
-interface Defaults {
-  baseResource?: string
-  init?: RequestInit
-  interceptors?: (resource: RequestInfo, init?: RequestInit) => any
-  timeout?: number
-}
-
-const originalFetch = async (
-  meta: Meta,
-  verb: HttpVerbs,
-  resource: string,
-  init?: RequestInit
-) => {
-  const _init = {
-    method: verb,
-    ...init,
-  }
-  const response = await meta._fetch(resource, _init)
-  return transformResponse(response)
-}
-
-const jsonBodyFirstFetch = async (
-  meta: Meta,
-  verb: HttpVerbs,
-  resource: string,
-  body?: Json,
-  init?: RequestInit
-) => {
-  let _init: RequestInit = {
-    method: verb,
-  }
-
-  if (body) {
-    _init['body'] = JSON.stringify(body)
-  }
-
-  if (init) {
-    if (init.body) {
-      console.warn(
-        'Passing body inside the third argument object will override whatever is passed as the second argument.'
-      )
-    }
-    Object.assign({}, _init, init)
-  }
-
-  const response = await meta._fetch(resource, _init)
-  return transformResponse(response)
-}
-
-function instance(
-  meta: Meta,
-  verb: 'GET' | 'HEAD'
-): (resource: string, init?: RequestInit) => Promise<FetchyResponse>
-function instance(
-  meta: Meta,
-  verb: 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-): (
-  resource: string,
-  body?: Json,
-  init?: RequestInit
-) => Promise<FetchyResponse>
-function instance(meta: Meta, verb: HttpVerbs) {
-  if (isHeadOrGet(verb)) {
-    return originalFetch.bind(null, meta, verb)
-  }
-  return jsonBodyFirstFetch.bind(null, meta, verb)
+export function create({ baseResource, interceptors, init }: Defaults) {
+  return initialize({ baseResource, interceptors, init })
 }
 
 function initialize(defaults: Defaults) {
@@ -150,8 +40,75 @@ function initialize(defaults: Defaults) {
   }
 }
 
-export function create({ baseResource, interceptors, init }: Defaults) {
-  return initialize({ baseResource, interceptors, init })
+function instance(meta: Meta, verb: 'GET' | 'HEAD'): GetHeadRequest
+function instance(meta: Meta, verb: 'POST' | 'PUT' | 'DELETE' | 'PATCH'): BodyFirstRequest
+function instance(meta: Meta, verb: HttpVerbs) {
+  if (isHeadOrGet(verb)) {
+    return originalFetch.bind(null, meta, verb)
+  }
+  return jsonBodyFirstFetch.bind(null, meta, verb)
+}
+
+function isHeadOrGet(verb: HttpVerbs): verb is 'HEAD' | 'GET' {
+  return verb === 'HEAD' || verb === 'GET'
+}
+
+function transformResponse(response: Response): Promise<FetchyResponse> {
+  if (!response.ok) {
+    throw new Error(response.statusText)
+  }
+  return attachBodyTransformsToResponse(response)
+}
+
+async function originalFetch(meta: Meta, verb: HttpVerbs, resource: string, init?: RequestInit) {
+  const _init = {
+    method: verb,
+    ...init,
+  }
+  const response = await meta._fetch(resource, _init)
+  return transformResponse(response)
+}
+
+async function jsonBodyFirstFetch(
+  meta: Meta,
+  verb: HttpVerbs,
+  resource: string,
+  body?: Json,
+  init?: RequestInit
+) {
+  let _init: RequestInit = {
+    method: verb,
+  }
+
+  if (body) {
+    _init['body'] = JSON.stringify(body)
+  }
+
+  if (init) {
+    if (init.body) {
+      console.warn(
+        'Passing body inside the third argument object will override whatever is passed as the second argument.'
+      )
+    }
+    Object.assign({}, _init, init)
+  }
+
+  const response = await meta._fetch(resource, _init)
+  return transformResponse(response)
+}
+
+async function attachBodyTransformsToResponse(_response: Response): Promise<FetchyResponse> {
+  let response: FetchyResponse = _response
+  for (const methods of bodyTransform) {
+    response[methods] = async () => await _response.clone()[methods]()
+  }
+  return response
 }
 
 export default initialize({})
+
+// TODO: add a timeout
+// TODO: convert all resource type to Request | string
+// TODO: cancel handler
+// TODO: deep merge init
+// TODO: define reasonable defaults
