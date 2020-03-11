@@ -1,6 +1,7 @@
 type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
 
-const isHeadOrGet = (verb: HttpVerbs) => verb === 'HEAD' || verb === 'GET'
+const isHeadOrGet = (verb: HttpVerbs): verb is 'HEAD' | 'GET' =>
+  verb === 'HEAD' || verb === 'GET'
 
 // TODO: add a timeout
 // TODO: convert all resource type to Request | string
@@ -44,14 +45,13 @@ const attachBodyTransformsToResponse = async (
 
 const transformResponse = (response: Response): Promise<FetchyResponse> => {
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+    throw new Error(response.statusText)
   }
   return attachBodyTransformsToResponse(response)
 }
 
 interface Meta {
   _fetch: typeof window.fetch
-  verb: HttpVerbs
   baseResource?: string
   init?: RequestInit
 }
@@ -63,9 +63,8 @@ interface Defaults {
   timeout?: number
 }
 
-// TODO: add a meta object { fetch, verb, defaults }
 const originalFetch = async (
-  _fetch: typeof window.fetch,
+  meta: Meta,
   verb: HttpVerbs,
   resource: string,
   init?: RequestInit
@@ -74,12 +73,12 @@ const originalFetch = async (
     method: verb,
     ...init,
   }
-  const response = await _fetch(resource, _init)
+  const response = await meta._fetch(resource, _init)
   return transformResponse(response)
 }
 
 const jsonBodyFirstFetch = async (
-  _fetch: typeof window.fetch,
+  meta: Meta,
   verb: HttpVerbs,
   resource: string,
   body?: Json,
@@ -91,27 +90,27 @@ const jsonBodyFirstFetch = async (
     ...(init && init),
   }
 
-  const response = await _fetch(resource, _init)
+  const response = await meta._fetch(resource, _init)
   return transformResponse(response)
 }
 
 function instance(
-  _fetch: typeof window.fetch,
+  meta: Meta,
   verb: 'GET' | 'HEAD'
 ): (resource: string, init?: RequestInit) => Promise<FetchyResponse>
 function instance(
-  _fetch: typeof window.fetch,
+  meta: Meta,
   verb: 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 ): (
   resource: string,
   body?: Json,
   init?: RequestInit
 ) => Promise<FetchyResponse>
-function instance(_fetch: typeof window.fetch, verb: HttpVerbs) {
+function instance(meta: Meta, verb: HttpVerbs) {
   if (isHeadOrGet(verb)) {
-    return originalFetch.bind(null, _fetch, verb)
+    return originalFetch.bind(null, meta, verb)
   }
-  return jsonBodyFirstFetch.bind(null, _fetch, verb)
+  return jsonBodyFirstFetch.bind(null, meta, verb)
 }
 
 function initialize(defaults: Defaults) {
@@ -126,15 +125,20 @@ function initialize(defaults: Defaults) {
           }
         })(fetch, defaults.interceptors)
 
+  const meta = {
+    _fetch,
+  }
+
   return {
-    get: instance(_fetch, 'GET'),
-    post: instance(_fetch, 'POST'),
-    put: instance(_fetch, 'PUT'),
-    delete: instance(_fetch, 'DELETE'),
-    patch: instance(_fetch, 'PATCH'),
-    head: instance(_fetch, 'HEAD'),
+    get: instance(meta, 'GET'),
+    post: instance(meta, 'POST'),
+    put: instance(meta, 'PUT'),
+    delete: instance(meta, 'DELETE'),
+    patch: instance(meta, 'PATCH'),
+    head: instance(meta, 'HEAD'),
   }
 }
+
 export function create({ baseResource, interceptors, init }: Defaults) {
   return initialize({ baseResource, interceptors, init })
 }
