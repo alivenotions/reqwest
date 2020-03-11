@@ -84,10 +84,21 @@ const jsonBodyFirstFetch = async (
   body?: Json,
   init?: RequestInit
 ) => {
-  const _init: RequestInit = {
+  let _init: RequestInit = {
     method: verb,
-    ...(body && { body: JSON.stringify(body) }),
-    ...(init && init),
+  }
+
+  if (body) {
+    _init['body'] = JSON.stringify(body)
+  }
+
+  if (init) {
+    if (init.body) {
+      console.warn(
+        'Passing body inside the third argument object will override whatever is passed as the second argument.'
+      )
+    }
+    Object.assign({}, _init, init)
   }
 
   const response = await meta._fetch(resource, _init)
