@@ -16,15 +16,7 @@ export function create({ baseResource, interceptors, init }: Defaults) {
 
 function initialize(defaults: Defaults) {
   const _fetch =
-    defaults.interceptors == undefined
-      ? fetch
-      : ((originalFetch, interceptors) => {
-          return (resource: RequestInfo, init?: RequestInit) => {
-            interceptors(resource, init)
-            const result = originalFetch.call(null, resource, init)
-            return result
-          }
-        })(fetch, defaults.interceptors)
+    defaults.interceptors == undefined ? fetch : interceptFetchRequest(fetch, defaults.interceptors)
 
   const meta: Meta = {
     _fetch,
@@ -107,6 +99,40 @@ async function attachBodyTransformsToResponse(_response: Response): Promise<Fetc
     response[methods] = async () => await _response.clone()[methods]()
   }
   return response
+}
+
+function interceptFetchRequest(
+  _fetch: typeof window.fetch,
+  interceptors: NonNullable<Defaults['interceptors']>
+) {
+  return (resource: RequestInfo, init?: RequestInit) => {
+    interceptors(resource, init)
+    const result = _fetch.call(null, resource, init)
+    return result
+  }
+}
+
+function mergeDeep(target: any, source: any) {
+  const isObject = (obj: any) => obj && typeof obj === 'object'
+
+  if (!isObject(target) || !isObject(source)) {
+    return source
+  }
+
+  Object.keys(source).forEach(key => {
+    const targetValue = target[key]
+    const sourceValue = source[key]
+
+    if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+      target[key] = targetValue.concat(sourceValue)
+    } else if (isObject(targetValue) && isObject(sourceValue)) {
+      target[key] = mergeDeep(Object.assign({}, targetValue), sourceValue)
+    } else {
+      target[key] = sourceValue
+    }
+  })
+
+  return target
 }
 
 export default initialize({})
