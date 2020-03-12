@@ -26,8 +26,9 @@ function initialize(defaults: Defaults) {
           }
         })(fetch, defaults.interceptors)
 
-  const meta = {
+  const meta: Meta = {
     _fetch,
+    baseResource: defaults.baseResource || '',
   }
 
   return {
@@ -61,11 +62,12 @@ function transformResponse(response: Response): Promise<FetchyResponse> {
 }
 
 async function originalFetch(meta: Meta, verb: HttpVerbs, resource: string, init?: RequestInit) {
+  const _resource = meta.baseResource + resource
   const _init = {
     method: verb,
     ...init,
   }
-  const response = await meta._fetch(resource, _init)
+  const response = await meta._fetch(_resource, _init)
   return transformResponse(response)
 }
 
@@ -76,6 +78,8 @@ async function jsonBodyFirstFetch(
   body?: Json,
   init?: RequestInit
 ) {
+  const _resource = meta.baseResource + resource
+
   let _init: RequestInit = {
     method: verb,
   }
@@ -93,7 +97,7 @@ async function jsonBodyFirstFetch(
     Object.assign({}, _init, init)
   }
 
-  const response = await meta._fetch(resource, _init)
+  const response = await meta._fetch(_resource, _init)
   return transformResponse(response)
 }
 

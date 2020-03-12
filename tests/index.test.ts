@@ -4,7 +4,8 @@ import fetch from 'node-fetch'
 // ts-jest was complaining about the types and it
 // was not getting resolved by declaring a module.
 const createTestServer = require('create-test-server')
-import fetchy from '../src'
+
+import fetchy, { create } from '../src'
 
 describe('fetchy hitting the server', () => {
   let server: any
@@ -12,6 +13,10 @@ describe('fetchy hitting the server', () => {
     server = await createTestServer()
 
     server.get('/', (_req: any, res: any) => {
+      res.end()
+    })
+
+    server.get('/base', (_req: any, res: any) => {
       res.end()
     })
 
@@ -38,6 +43,7 @@ describe('fetchy hitting the server', () => {
   afterAll(async () => {
     await server.close()
   })
+
   it('should run the GET request', async done => {
     expect((await fetchy.get(server.url)).ok).toEqual(true)
     done()
@@ -65,6 +71,30 @@ describe('fetchy hitting the server', () => {
 
   it('should run the HEAD request', async done => {
     expect((await fetchy.head(server.url)).ok).toEqual(true)
+    done()
+  })
+
+  it('should create an instance with a base url', async done => {
+    const api = create({
+      baseResource: server.url,
+    })
+
+    expect((await api.get('/base')).ok).toEqual(true)
+    done()
+  })
+
+  it('call the callback passed to the interceptor property before every request', async done => {
+    const callback = jest.fn()
+    const api = create({
+      baseResource: server.url,
+      interceptors: callback,
+    })
+
+    await api.get('/base')
+    expect(callback).toHaveBeenCalled()
+    expect(callback).toHaveBeenCalledWith(`${server.url}/base`, { method: 'GET' })
+    await api.get('/')
+    expect(callback).toHaveBeenCalledTimes(2)
     done()
   })
 })
