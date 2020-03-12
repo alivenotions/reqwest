@@ -7,6 +7,7 @@ import {
   FetchyResponse,
   Json,
 } from './interface'
+import { deepMerge } from './deep-merge'
 
 const bodyTransform = ['arrayBuffer', 'blob', 'formData', 'json', 'text'] as const
 
@@ -61,7 +62,7 @@ async function originalFetch(meta: Meta, verb: HttpVerbs, resource: string, init
   }
 
   if (meta.init) {
-    _init = mergeDeep(meta.init, _init)
+    _init = deepMerge(meta.init, _init)
   }
   const response = await meta._fetch(_resource, _init)
   return transformResponse(response)
@@ -95,7 +96,7 @@ async function jsonBodyFirstFetch(
   }
 
   if (meta.init) {
-    _init = mergeDeep(meta.init, _init)
+    _init = deepMerge(meta.init, _init)
   }
   const response = await meta._fetch(_resource, _init)
   return transformResponse(response)
@@ -118,29 +119,6 @@ function interceptFetchRequest(
     const result = _fetch.call(null, resource, init)
     return result
   }
-}
-
-function mergeDeep(target: any, source: any) {
-  const isObject = (obj: any) => obj && typeof obj === 'object'
-
-  if (!isObject(target) || !isObject(source)) {
-    return source
-  }
-
-  Object.keys(source).forEach(key => {
-    const targetValue = target[key]
-    const sourceValue = source[key]
-
-    if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
-      target[key] = targetValue.concat(sourceValue)
-    } else if (isObject(targetValue) && isObject(sourceValue)) {
-      target[key] = mergeDeep(Object.assign({}, targetValue), sourceValue)
-    } else {
-      target[key] = sourceValue
-    }
-  })
-
-  return target
 }
 
 export default initialize({})
