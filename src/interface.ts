@@ -22,7 +22,7 @@ export interface FetchyResponse extends Response {
 
 export interface Meta {
   _fetch: typeof window.fetch
-  baseResource?: string
+  baseResource: string
   init?: RequestInit
 }
 

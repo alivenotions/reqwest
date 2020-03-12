@@ -55,9 +55,13 @@ function transformResponse(response: Response): Promise<FetchyResponse> {
 
 async function originalFetch(meta: Meta, verb: HttpVerbs, resource: string, init?: RequestInit) {
   const _resource = meta.baseResource + resource
-  const _init = {
+  let _init = {
     method: verb,
     ...init,
+  }
+
+  if (meta.init) {
+    _init = mergeDeep(meta.init, _init)
   }
   const response = await meta._fetch(_resource, _init)
   return transformResponse(response)
@@ -83,12 +87,16 @@ async function jsonBodyFirstFetch(
   if (init) {
     if (init.body) {
       console.warn(
-        'Passing body inside the third argument object will override whatever is passed as the second argument.'
+        'Passing body inside the third argument object will override the second argument. Remember to JSON.stringify.'
       )
     }
-    Object.assign({}, _init, init)
+
+    _init = Object.assign({}, _init, init)
   }
 
+  if (meta.init) {
+    _init = mergeDeep(meta.init, _init)
+  }
   const response = await meta._fetch(_resource, _init)
   return transformResponse(response)
 }
@@ -140,5 +148,4 @@ export default initialize({})
 // TODO: add a timeout
 // TODO: convert all resource type to Request | string
 // TODO: cancel handler
-// TODO: deep merge init
-// TODO: define reasonable defaults
+// TODO: validate initial input
