@@ -1,5 +1,5 @@
 {
-  "name": "@alivenotions/reqwest",
+  "name": "@alivenotions/fetchy",
   "version": "0.0.0-development",
   "description": "handy wrapper around fetch",
   "main": "lib/index.js",
