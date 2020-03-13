@@ -8,12 +8,12 @@ import {
   Json,
 } from './interface'
 import { deepMerge } from './deep-merge'
-import { validateDefaults, isHeadOrGet, appendToBaseResource } from './helpers'
+import { validateDefaults, isHeadOrGet, appendToBaseUrl } from './helpers'
 
 const bodyTransform = ['arrayBuffer', 'blob', 'formData', 'json', 'text'] as const
 
-export function create({ baseResource, interceptors, init }: Defaults) {
-  return initialize({ baseResource, interceptors, init })
+function create({ baseUrl, interceptors, init }: Defaults) {
+  return initialize({ baseUrl, interceptors, init })
 }
 
 function initialize(defaults: Defaults) {
@@ -25,7 +25,7 @@ function initialize(defaults: Defaults) {
 
   const meta: Meta = {
     _fetch,
-    baseResource: defaults.baseResource || '',
+    baseUrl: defaults.baseUrl || '',
     init: defaults.init,
   }
 
@@ -58,10 +58,10 @@ function throwOnFailHttpCode(response: Response): Response {
 function originalFetch(
   meta: Meta,
   verb: HttpVerbs,
-  resource: string,
+  url: string,
   init?: RequestInit
 ): FetchyResponse {
-  const _resource = appendToBaseResource(meta.baseResource, resource)
+  const _url = appendToBaseUrl(meta.baseUrl, url)
 
   let _init = {
     method: verb,
@@ -71,17 +71,17 @@ function originalFetch(
   if (meta.init) {
     _init = deepMerge(meta.init, _init)
   }
-  return runFetch(meta._fetch, _resource, _init)
+  return runFetch(meta._fetch, _url, _init)
 }
 
 function jsonBodyFirstFetch(
   meta: Meta,
   verb: HttpVerbs,
-  resource: string,
+  url: string,
   body?: Json,
   init?: RequestInit
 ) {
-  const _resource = appendToBaseResource(meta.baseResource, resource)
+  const _url = appendToBaseUrl(meta.baseUrl, url)
 
   let _init: RequestInit = {
     method: verb,
@@ -105,7 +105,7 @@ function jsonBodyFirstFetch(
     _init = deepMerge(meta.init, _init)
   }
 
-  return runFetch(meta._fetch, _resource, _init)
+  return runFetch(meta._fetch, _url, _init)
 }
 
 function attachBodyTransformsToResponse(_response: Promise<Response>): FetchyResponse {
@@ -120,19 +120,17 @@ function interceptFetchRequest(
   _fetch: typeof fetch,
   interceptors: NonNullable<Defaults['interceptors']>
 ) {
-  return (resource: RequestInfo, init?: RequestInit) => {
-    interceptors(resource, init)
-    const result = _fetch.call(null, resource, init)
+  return (url: RequestInfo, init?: RequestInit) => {
+    interceptors(url, init)
+    const result = _fetch.call(null, url, init)
     return result
   }
 }
 
-function runFetch(_fetch: typeof fetch, resource: string, init: RequestInit) {
-  const response = _fetch(resource, init).then(throwOnFailHttpCode)
+function runFetch(_fetch: typeof fetch, url: string, init: RequestInit) {
+  const response = _fetch(url, init).then(throwOnFailHttpCode)
   return attachBodyTransformsToResponse(response)
 }
 
+export { create as createFetchyConfiguration }
 export default initialize({})
-
-// TODO: add a timeout
-// TODO: cancel handler

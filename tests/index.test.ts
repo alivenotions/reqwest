@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 // was not getting resolved by declaring a module.
 const createTestServer = require('create-test-server')
 
-import fetchy, { create } from '../src'
+import fetchy, { createFetchyConfiguration } from '../src'
 
 describe('fetchy hitting the server', () => {
   let server: any
@@ -75,8 +75,8 @@ describe('fetchy hitting the server', () => {
   })
 
   it('should create an instance with a base url', async done => {
-    const api = create({
-      baseResource: server.url,
+    const api = createFetchyConfiguration({
+      baseUrl: server.url,
     })
 
     expect((await api.get('/base')).ok).toEqual(true)
@@ -85,8 +85,8 @@ describe('fetchy hitting the server', () => {
 
   it('call the callback passed to the interceptor property before every request', async done => {
     const callback = jest.fn()
-    const api = create({
-      baseResource: server.url,
+    const api = createFetchyConfiguration({
+      baseUrl: server.url,
       interceptors: callback,
     })
 
@@ -98,11 +98,11 @@ describe('fetchy hitting the server', () => {
     done()
   })
 
-  it('should throw if an invalid baseResource is passed', async done => {
+  it('should throw if an invalid baseUrl is passed', async done => {
     expect.assertions(1)
     try {
-      create({
-        baseResource: 2 as any,
+      createFetchyConfiguration({
+        baseUrl: 2 as any,
       })
     } catch (e) {
       expect(e).toBeDefined()
@@ -113,7 +113,7 @@ describe('fetchy hitting the server', () => {
   it('should throw if an invalid interceptor is passed', async done => {
     expect.assertions(1)
     try {
-      create({
+      createFetchyConfiguration({
         interceptors: 2 as any,
       })
     } catch (e) {
@@ -125,7 +125,7 @@ describe('fetchy hitting the server', () => {
   it('should throw if init is not an object', async done => {
     expect.assertions(1)
     try {
-      create({
+      createFetchyConfiguration({
         init: 2 as any,
       })
     } catch (e) {
@@ -137,8 +137,8 @@ describe('fetchy hitting the server', () => {
   it('should throw if slashes mismatch between baseUrl and the request url', async done => {
     expect.assertions(2)
     try {
-      const api = create({
-        baseResource: server.url + '/',
+      const api = createFetchyConfiguration({
+        baseUrl: server.url + '/',
       })
 
       await api.get('/base')
@@ -147,8 +147,8 @@ describe('fetchy hitting the server', () => {
     }
 
     try {
-      const api = create({
-        baseResource: server.url,
+      const api = createFetchyConfiguration({
+        baseUrl: server.url,
       })
 
       await api.get('base')

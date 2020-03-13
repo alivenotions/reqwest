@@ -1,6 +1,6 @@
 export type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
-export type GetHeadRequest = (resource: string, init?: RequestInit) => FetchyResponse
-export type BodyFirstRequest = (resource: string, body?: Json, init?: RequestInit) => FetchyResponse
+export type GetHeadRequest = (url: string, init?: RequestInit) => FetchyResponse
+export type BodyFirstRequest = (url: string, body?: Json, init?: RequestInit) => FetchyResponse
 
 export interface Json {
   [x: string]: string | number | boolean | Date | Json | JsonArray
@@ -18,13 +18,13 @@ export interface FetchyResponse extends Promise<Response> {
 
 export interface Meta {
   _fetch: typeof fetch
-  baseResource: string
+  baseUrl: string
   init?: RequestInit
 }
 
 export interface Defaults {
-  baseResource?: string
+  baseUrl?: string
   init?: RequestInit
-  interceptors?: (resource: RequestInfo, init?: RequestInit) => any
+  interceptors?: (url: RequestInfo, init?: RequestInit) => any
   timeout?: number
 }
