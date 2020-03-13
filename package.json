@@ -2,7 +2,7 @@
   "name": "@alivenotions/reqwest",
   "version": "0.0.0-development",
   "description": "handy wrapper around fetch",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "build:check": "tsc --noEmit",
@@ -15,7 +15,9 @@
     "ajax"
   ],
   "files": [
-    "lib"
+    "lib/*",
+    "src/*",
+    "tests/*"
   ],
   "author": "Bhavdeep Dhanjal <dhanjalbhavdeep@gmail.com>",
   "license": "MIT",
