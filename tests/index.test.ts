@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-;(global as any).fetch = fetch
+;(window as any).fetch = fetch
 
 // ts-jest was complaining about the types and it
 // was not getting resolved by declaring a module.
