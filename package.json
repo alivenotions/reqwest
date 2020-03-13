@@ -1,12 +1,13 @@
 {
   "name": "@alivenotions/reqwest",
-  "version": "0.0.1",
-  "description": "handy wrapper around fetch + helpers",
+  "version": "0.0.0-development",
+  "description": "handy wrapper around fetch",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
     "build:check": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "semantic-release": "semantic-release"
   },
   "keywords": [
     "fetch",
@@ -29,7 +30,8 @@
     "node-fetch": "2.6.0",
     "prettier": "1.19.1",
     "ts-jest": "25.2.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "semantic-release": "^17.0.4"
   },
   "husky": {
     "hooks": {
@@ -38,5 +40,9 @@
   },
   "lint-staged": {
     "*.{md,ts}": "prettier --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alivenotions/fetchy.git"
   }
 }

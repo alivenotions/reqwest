@@ -9,5 +9,5 @@ node_js:
 script:
   - yarn test
   - yarn build
-# after_success:
-  # - npm run travis-deploy-once "npm run semantic-release"
+after_success:
+  - yarn semantic-release
