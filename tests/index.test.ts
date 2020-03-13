@@ -97,4 +97,64 @@ describe('fetchy hitting the server', () => {
     expect(callback).toHaveBeenCalledTimes(2)
     done()
   })
+
+  it('should throw if an invalid baseResource is passed', async done => {
+    expect.assertions(1)
+    try {
+      create({
+        baseResource: 2 as any,
+      })
+    } catch (e) {
+      expect(e).toBeDefined()
+    }
+    done()
+  })
+
+  it('should throw if an invalid interceptor is passed', async done => {
+    expect.assertions(1)
+    try {
+      create({
+        interceptors: 2 as any,
+      })
+    } catch (e) {
+      expect(e).toBeDefined()
+    }
+    done()
+  })
+
+  it('should throw if init is not an object', async done => {
+    expect.assertions(1)
+    try {
+      create({
+        init: 2 as any,
+      })
+    } catch (e) {
+      expect(e).toBeDefined()
+    }
+    done()
+  })
+
+  it('should throw if slashes mismatch between baseUrl and the request url', async done => {
+    expect.assertions(2)
+    try {
+      const api = create({
+        baseResource: server.url + '/',
+      })
+
+      await api.get('/base')
+    } catch (e) {
+      expect(e).toBeDefined()
+    }
+
+    try {
+      const api = create({
+        baseResource: server.url,
+      })
+
+      await api.get('base')
+    } catch (e) {
+      expect(e).toBeDefined()
+    }
+    done()
+  })
 })

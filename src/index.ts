@@ -16,12 +16,15 @@ export function create({ baseResource, interceptors, init }: Defaults) {
 }
 
 function initialize(defaults: Defaults) {
+  validateDefaults(defaults)
+
   const _fetch =
     defaults.interceptors == undefined ? fetch : interceptFetchRequest(fetch, defaults.interceptors)
 
   const meta: Meta = {
     _fetch,
     baseResource: defaults.baseResource || '',
+    init: defaults.init,
   }
 
   return {
@@ -43,6 +46,42 @@ function instance(meta: Meta, verb: HttpVerbs) {
   return jsonBodyFirstFetch.bind(null, meta, verb)
 }
 
+function validateDefaults({ interceptors, init, baseResource }: Defaults): void {
+  if (interceptors != undefined && typeof interceptors !== 'function') {
+    throw new Error(
+      'The interceptor should be a function that can expect the url and init options as arguments.'
+    )
+  }
+
+  if (init != undefined && typeof init !== 'object') {
+    throw new Error(
+      'Init should be an object. Please check https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch for correct options'
+    )
+  }
+
+  if (baseResource != undefined && typeof baseResource !== 'string') {
+    throw new Error(
+      'Base resource should be a string. If you are using request, consider using a string url with init options'
+    )
+  }
+}
+
+function appendToBaseResource(base: string, resource: string): string {
+  if (Boolean(base) && base.endsWith('/') && resource.startsWith('/')) {
+    throw new Error(
+      'The configured base resource already ends with a slash, remove the slash in the request url'
+    )
+  }
+
+  if (Boolean(base) && !base.endsWith('/') && !resource.startsWith('/')) {
+    throw new Error(
+      'The configured base resource also does not end with a slash, add a slash in the request url'
+    )
+  }
+
+  return base + resource
+}
+
 function isHeadOrGet(verb: HttpVerbs): verb is 'HEAD' | 'GET' {
   return verb === 'HEAD' || verb === 'GET'
 }
@@ -55,7 +94,8 @@ function transformResponse(response: Response): Promise<FetchyResponse> {
 }
 
 async function originalFetch(meta: Meta, verb: HttpVerbs, resource: string, init?: RequestInit) {
-  const _resource = meta.baseResource + resource
+  const _resource = appendToBaseResource(meta.baseResource, resource)
+
   let _init = {
     method: verb,
     ...init,
@@ -75,7 +115,7 @@ async function jsonBodyFirstFetch(
   body?: Json,
   init?: RequestInit
 ) {
-  const _resource = meta.baseResource + resource
+  const _resource = appendToBaseResource(meta.baseResource, resource)
 
   let _init: RequestInit = {
     method: verb,
@@ -124,6 +164,4 @@ function interceptFetchRequest(
 export default initialize({})
 
 // TODO: add a timeout
-// TODO: convert all resource type to Request | string
 // TODO: cancel handler
-// TODO: validate initial input
