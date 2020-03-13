@@ -1,10 +1,6 @@
 export type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
-export type GetHeadRequest = (resource: string, init?: RequestInit) => Promise<FetchyResponse>
-export type BodyFirstRequest = (
-  resource: string,
-  body?: Json,
-  init?: RequestInit
-) => Promise<FetchyResponse>
+export type GetHeadRequest = (resource: string, init?: RequestInit) => FetchyResponse
+export type BodyFirstRequest = (resource: string, body?: Json, init?: RequestInit) => FetchyResponse
 
 export interface Json {
   [x: string]: string | number | boolean | Date | Json | JsonArray
@@ -12,7 +8,7 @@ export interface Json {
 
 export interface JsonArray extends Array<string | number | boolean | Date | Json | JsonArray> {}
 
-export interface FetchyResponse extends Response {
+export interface FetchyResponse extends Promise<Response> {
   arrayBuffer(): Promise<ArrayBuffer>
   blob(): Promise<Blob>
   formData(): Promise<FormData>
@@ -21,7 +17,7 @@ export interface FetchyResponse extends Response {
 }
 
 export interface Meta {
-  _fetch: typeof window.fetch
+  _fetch: typeof fetch
   baseResource: string
   init?: RequestInit
 }
