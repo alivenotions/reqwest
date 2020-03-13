@@ -40,8 +40,10 @@ await fetchy.post(url, { user: { id: 2 } }, { credentials: include })
 import { createFetchyConfiguration } from '@alivenotions/fetchy'
 
 const fetchy = createFetchyConfiguration({
-  baseResource: 'http://localhost/,
-  interceptors: (url, init) => { console.log(`sent a request to ${url} at ${Date.now}`) },
+  baseResource: 'http://localhost/',
+  interceptors: (url, init) => {
+    console.log(`sent a request to ${url} at ${Date.now}`)
+  },
   init: {
     headers: {
       'Content-Type': 'application/json',
