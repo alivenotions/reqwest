@@ -1,4 +1,7 @@
 language: node_js
+branches:
+  only:
+    - master
 notifications:
   email: 
     on_success: never
@@ -9,3 +12,6 @@ script:
   - yarn build
 after_success:
   - yarn semantic-release
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/
