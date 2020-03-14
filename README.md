@@ -23,7 +23,7 @@ yarn add @alivenotions/fetchy
 
 ## Examples
 
-\*\* HTTP methods
+**HTTP methods**
 
 ```javascript
 import fetchy from '@alivenotions/fetchy'
@@ -34,7 +34,7 @@ const response = await fetchy.get(url).json()
 await fetchy.post(url, { user: { id: 2 } }, { credentials: include })
 ```
 
-\*\* Global configuration
+**Global configuration**
 
 ```javascript
 import { createFetchyConfiguration } from '@alivenotions/fetchy'
@@ -57,12 +57,12 @@ const response = await fetchy.get('home')
 
 ## Design decisions
 
-1. All the HTTP request methods are available on the top level
+1. All the HTTP request methods are available on the top level.
 2. Non 2xx status codes error out.
-3. JSON body can be passed as the second argument for `post`, `put`, `delete` and `patch`. It will automatically be passed through `JSON.strigify`. I mostly find myself working with JSON hence the preference. `get` and `head` don't have this argument.
+3. JSON body can be passed as the second argument for `post`, `put`, `delete` and `patch`. It will automatically be passed through `JSON.stringify`. I mostly find myself working with JSON hence the preference. `get` and `head` don't have this argument.
 4. Regular [init](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) can be passed as the third argument to `post`, `put`, `delete` and `head` methods.
 5. Helper methods to transform body data like `json`, `text` etc. are available on the top-level promise to save another `.then()` chain or another `await`.
-6. The first argument for all methods is `resource`/`url`. Currently it's always a string. In the future, we can probably accomodate the Request object too.
+6. The first argument for all methods is `resource`/`url`. Currently it's always a string. In the future, we can probably accomodate the `Request` object too.
 7. A central configuration object is also available that allows for configuring http call interceptions, base urls, and option defaults.
 
 ## API
