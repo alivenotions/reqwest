@@ -29,6 +29,8 @@ function initialize(defaults: Defaults) {
     init: defaults.init,
   }
 
+  // console.log(defaults)
+  // console.log(meta);
   return {
     get: instance(meta, 'GET'),
     post: instance(meta, 'POST'),
@@ -63,6 +65,8 @@ function originalFetch(
 ): FetchyResponse {
   const _url = appendToBaseUrl(meta.baseUrl, url)
 
+  console.log(meta.init)
+  console.log(init)
   let _init = {
     method: verb,
     ...init,
@@ -78,7 +82,7 @@ function jsonBodyFirstFetch(
   meta: Meta,
   verb: HttpVerbs,
   url: string,
-  body?: Json,
+  body?: Json | null,
   init?: RequestInit
 ) {
   const _url = appendToBaseUrl(meta.baseUrl, url)
@@ -92,9 +96,9 @@ function jsonBodyFirstFetch(
   }
 
   if (init) {
-    if (init.body) {
+    if (init.body && body != null) {
       console.warn(
-        'Passing body inside the third argument object will override the second argument. Remember to JSON.stringify.'
+        'Passing body inside the third argument object will override the second argument. Remember to JSON.stringify if it is meant to be JSON.'
       )
     }
 

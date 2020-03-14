@@ -1,6 +1,10 @@
 export type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
 export type GetHeadRequest = (url: string, init?: RequestInit) => FetchyResponse
-export type BodyFirstRequest = (url: string, body?: Json, init?: RequestInit) => FetchyResponse
+export type BodyFirstRequest = (
+  url: string,
+  body?: Json | null,
+  init?: RequestInit
+) => FetchyResponse
 
 export interface Json {
   [x: string]: string | number | boolean | Date | Json | JsonArray

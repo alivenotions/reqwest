@@ -1,43 +1,15 @@
 import fetch from 'node-fetch'
 ;(window as any).fetch = fetch
 
+import fetchy, { createFetchyConfiguration } from '../src'
 // ts-jest was complaining about the types and it
 // was not getting resolved by declaring a module.
 const createTestServer = require('create-test-server')
 
-import fetchy, { createFetchyConfiguration } from '../src'
-
 describe('fetchy hitting the server', () => {
   let server: any
   beforeAll(async () => {
-    server = await createTestServer()
-
-    server.get('/', (_req: any, res: any) => {
-      res.end()
-    })
-
-    server.get('/base', (_req: any, res: any) => {
-      res.end()
-    })
-
-    server.post('/', (_req: any, res: any) => {
-      res.end()
-    })
-
-    server.put('/', (_req: any, res: any) => {
-      res.end()
-    })
-
-    server.patch('/', (_req: any, res: any) => {
-      res.end()
-    })
-
-    server.delete('/', (_req: any, res: any) => {
-      res.end()
-    })
-    server.head('/', (_req: any, res: any) => {
-      res.end()
-    })
+    server = await setupServer()
   })
 
   afterAll(async () => {
@@ -157,4 +129,81 @@ describe('fetchy hitting the server', () => {
     }
     done()
   })
+
+  it('should return the response body by calling transform helpers', async done => {
+    const api = createFetchyConfiguration({
+      baseUrl: server.url,
+    })
+
+    const resultJson = await api.post('/echo', { id: 1 }).json<{ id: number }>()
+    const resultText = await api.post('/echo', undefined, { body: 'yo' }).text()
+
+    expect(resultJson).toEqual({ id: 1 })
+    expect(resultText).toEqual('yo')
+    done()
+  })
+
+  it('should override the second json argument if body is there in init', async done => {
+    const echoApi = `${server.url}/echo`
+    const result = await fetchy.post(echoApi, { id: 1 }, { body: '1' }).text()
+
+    expect(result).toEqual('1')
+    done()
+  })
+
+  it('should throw an error on non 2xx status codes', async done => {
+    const url = `${server.url}/error`
+
+    expect.assertions(1)
+
+    try {
+      await fetchy.delete(url).text()
+    } catch (e) {
+      expect(e).toBeDefined()
+    }
+    done()
+  })
 })
+
+async function setupServer() {
+  const server = await createTestServer()
+  server.get('/', (_req: any, res: any) => {
+    res.end()
+  })
+
+  server.get('/base', (_req: any, res: any) => {
+    res.end()
+  })
+
+  server.post('/', (_req: any, res: any) => {
+    res.end()
+  })
+
+  server.post('/echo', (req: any, res: any) => {
+    res.send(req.body)
+    res.end()
+  })
+
+  server.delete('/error', (req: any, res: any) => {
+    res.status(500)
+    res.send('whoops')
+    res.end()
+  })
+
+  server.put('/', (_req: any, res: any) => {
+    res.end()
+  })
+
+  server.patch('/', (_req: any, res: any) => {
+    res.end()
+  })
+
+  server.delete('/', (_req: any, res: any) => {
+    res.end()
+  })
+  server.head('/', (_req: any, res: any) => {
+    res.end()
+  })
+
+  return server
+}
