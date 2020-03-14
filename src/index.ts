@@ -29,8 +29,6 @@ function initialize(defaults: Defaults) {
     init: defaults.init,
   }
 
-  // console.log(defaults)
-  // console.log(meta);
   return {
     get: instance(meta, 'GET'),
     post: instance(meta, 'POST'),
@@ -65,8 +63,6 @@ function originalFetch(
 ): FetchyResponse {
   const _url = appendToBaseUrl(meta.baseUrl, url)
 
-  console.log(meta.init)
-  console.log(init)
   let _init = {
     method: verb,
     ...init,
