@@ -163,6 +163,66 @@ describe('fetchy hitting the server', () => {
     }
     done()
   })
+
+  it('should merge the configured init and the one passed with http methods', async done => {
+    let sentHeader: any
+    const api = createFetchyConfiguration({
+      baseUrl: server.url,
+      init: {
+        headers: {
+          'Content-type': 'application/json',
+          'cache-control': 'no-cache',
+        },
+        credentials: 'same-origin',
+      },
+      interceptors: (_req, init) => {
+        sentHeader = init
+      },
+    })
+
+    await api.post(
+      '/',
+      { id: 1 },
+      {
+        headers: {
+          'cache-control': 'no-store',
+          authentication: 'secret',
+        },
+        credentials: 'include',
+      }
+    )
+
+    const expectedOutput1 = {
+      headers: {
+        'Content-type': 'application/json',
+        'cache-control': 'no-store',
+        authentication: 'secret',
+      },
+      credentials: 'include',
+      method: 'POST',
+      body: JSON.stringify({ id: 1 }),
+    }
+
+    expect(sentHeader).toEqual(expectedOutput1)
+
+    const expectedOutput2 = {
+      headers: {
+        'Content-type': 'application/json',
+        'cache-control': 'max-age=60',
+      },
+      credentials: 'same-origin',
+      method: 'GET',
+    }
+
+    await api.get('/', {
+      headers: {
+        'cache-control': 'max-age=60',
+      },
+    })
+
+    expect(sentHeader).toEqual(expectedOutput2)
+    done()
+  })
 })
 
 async function setupServer() {

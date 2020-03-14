@@ -5,18 +5,19 @@ export function deepMerge(target: any, source: any) {
     return source
   }
 
+  let newObject = { ...target }
   Object.keys(source).forEach(key => {
-    const targetValue = target[key]
+    const targetValue = newObject[key]
     const sourceValue = source[key]
 
     if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
-      target[key] = targetValue.concat(sourceValue)
+      newObject[key] = targetValue.concat(sourceValue)
     } else if (isObject(targetValue) && isObject(sourceValue)) {
-      target[key] = deepMerge(Object.assign({}, targetValue), sourceValue)
+      newObject[key] = deepMerge(Object.assign({}, targetValue), sourceValue)
     } else {
-      target[key] = sourceValue
+      newObject[key] = sourceValue
     }
   })
 
-  return target
+  return newObject
 }
