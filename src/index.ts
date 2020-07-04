@@ -17,7 +17,6 @@ function create({ baseUrl, interceptors, init }: Defaults) {
 }
 
 function initialize(defaults: Defaults) {
-  const fetch = window.fetch.bind(window)
   validateDefaults(defaults)
 
   const _fetch =
