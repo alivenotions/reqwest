@@ -19,6 +19,8 @@
     "src/*",
     "tests/*"
   ],
+  "type": "module",
+  "module": "lib/index.js",
   "author": "Bhavdeep Dhanjal <dhanjalbhavdeep@gmail.com>",
   "license": "MIT",
   "devDependencies": {
