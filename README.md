@@ -83,7 +83,7 @@ const response = await fetchy.get('home')
 
 ## Future scope
 
-1. Add cancellation
-2. Add timeout
+1. Add timeout
+2. Add retries
 
-Will probably stop after this (probably will be 1.1.0), as there are already many libraries that fulfill many more requirements and are far less opinionated.
+Will probably stop after this (probably will be 1.2.0), as there are already many libraries that fulfill many more requirements and are far less opinionated.
