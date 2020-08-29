@@ -1,9 +1,10 @@
 export type HttpVerbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
-export type GetHeadRequest = (url: string, init?: RequestInit) => FetchyResponse
+export type GetHeadRequest = (url: string, init?: RequestInit, timeout?: number) => FetchyResponse
 export type BodyFirstRequest = (
   url: string,
   body?: Json | null,
-  init?: RequestInit
+  init?: RequestInit,
+  timeout?: number
 ) => FetchyResponse
 
 export interface Json {
@@ -24,6 +25,7 @@ export interface Meta {
   _fetch: typeof fetch
   baseUrl: string
   init?: RequestInit
+  timeout?: number
 }
 
 export interface Defaults {
