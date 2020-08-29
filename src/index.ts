@@ -26,6 +26,7 @@ function initialize(defaults: Defaults) {
     _fetch,
     baseUrl: defaults.baseUrl || '',
     init: defaults.init,
+    timeout: defaults.timeout,
   }
 
   return {
@@ -58,7 +59,8 @@ function originalFetch(
   meta: Meta,
   verb: HttpVerbs,
   url: string,
-  init?: RequestInit
+  init?: RequestInit,
+  timeout?: number
 ): FetchyResponse {
   const _url = appendToBaseUrl(meta.baseUrl, url)
 
@@ -67,10 +69,12 @@ function originalFetch(
     ...init,
   }
 
+  const _timeout = timeout || meta.timeout
+
   if (meta.init) {
     _init = deepMerge(meta.init, _init)
   }
-  return runFetch(meta._fetch, _url, _init)
+  return runFetch(meta._fetch, _url, _init, _timeout)
 }
 
 function jsonBodyFirstFetch(
@@ -78,7 +82,8 @@ function jsonBodyFirstFetch(
   verb: HttpVerbs,
   url: string,
   body?: Json | null,
-  init?: RequestInit
+  init?: RequestInit,
+  timeout?: number
 ) {
   const _url = appendToBaseUrl(meta.baseUrl, url)
 
@@ -104,7 +109,9 @@ function jsonBodyFirstFetch(
     _init = deepMerge(meta.init, _init)
   }
 
-  return runFetch(meta._fetch, _url, _init)
+  const _timeout = timeout || meta.timeout
+
+  return runFetch(meta._fetch, _url, _init, _timeout)
 }
 
 function attachBodyTransformsToResponse(_response: Promise<Response>): FetchyResponse {
@@ -126,8 +133,24 @@ function interceptFetchRequest(
   }
 }
 
-function runFetch(_fetch: typeof fetch, url: string, init: RequestInit) {
-  const response = _fetch(url, init).then(throwOnFailHttpCode)
+function runFetch(_fetch: typeof fetch, url: string, init: RequestInit, timeout?: number) {
+  let _init = init
+  if (timeout) {
+    const controller = new AbortController()
+    _init.signal = controller.signal
+
+    const timerId = setTimeout(() => {
+      controller.abort()
+    }, timeout)
+  }
+  const response = _fetch(url, _init)
+    .then(throwOnFailHttpCode)
+    .catch((error) => {
+      if (error.name === 'AbortError') {
+        throw new Error('Response timed out')
+      }
+      throw new Error(error.message)
+    })
   return attachBodyTransformsToResponse(response)
 }
 
