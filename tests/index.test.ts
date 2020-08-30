@@ -154,12 +154,13 @@ describe('fetchy hitting the server', () => {
   it('should timeout if the response takes longer than the timeout time', async (done) => {
     const url = `${server.url}/twoSeconds`
 
-    expect.assertions(2)
+    expect.assertions(3)
 
     try {
       await fetchy.get(url, {}, 1000).text()
     } catch (e) {
       expect(e).toBeDefined()
+      expect(e.name).toEqual('TimeoutError')
     }
 
     try {

@@ -34,6 +34,21 @@ const response = await fetchy.get(url).json()
 await fetchy.post(url, { user: { id: 2 } }, { credentials: include })
 ```
 
+**Timeouts**
+
+```javascript
+import fetchy from '@alivenotions/fetchy'
+
+const url = `http://localhost/home`
+
+try {
+  const response = await fetchy.get(url, {}, 3000).json()
+} catch (e) {
+  if (e.name === 'TimeoutError') {
+  }
+}
+```
+
 **Global configuration**
 
 ```javascript

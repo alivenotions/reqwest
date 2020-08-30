@@ -133,6 +133,13 @@ function interceptFetchRequest(
   }
 }
 
+class TimeoutError extends Error {
+  constructor() {
+    super('Request timed out')
+    this.name = 'TimeoutError'
+  }
+}
+
 function runFetch(_fetch: typeof fetch, url: string, init: RequestInit, timeout?: number) {
   let _init = init
   if (timeout) {
@@ -147,7 +154,7 @@ function runFetch(_fetch: typeof fetch, url: string, init: RequestInit, timeout?
     .then(throwOnFailHttpCode)
     .catch((error) => {
       if (error.name === 'AbortError') {
-        throw new Error('Response timed out')
+        throw new TimeoutError()
       }
       throw new Error(error.message)
     })
