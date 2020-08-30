@@ -67,23 +67,22 @@ const response = await fetchy.get('home')
 
 ## API
 
-### 1. fetchy.get(url [, initOptions])
+### 1. fetchy.get(url [, initOptions, timeout])
 
-### 2. fetchy.post(url, [, body, initOptions])
+### 2. fetchy.post(url, [, body, initOptions, timeout])
 
-### 3. fetchy.put(url, [, body, initOptions])
+### 3. fetchy.put(url, [, body, initOptions, timeout])
 
-### 4. fetchy.delete(url, [, body, initOptions])
+### 4. fetchy.delete(url, [, body, initOptions, timeout])
 
-### 5. fetchy.patch(url, [, body, initOptions])
+### 5. fetchy.patch(url, [, body, initOptions, timeout])
 
-### 6. fetchy.head(url [, initOptions])
+### 6. fetchy.head(url [, initOptions, timeout])
 
-### 7. createFetchyConfiguration({ baseResource?, interceptors?, initOptions? })
+### 7. createFetchyConfiguration({ baseResource?, interceptors?, initOptions?, timeout? })
 
 ## Future scope
 
-1. Add timeout
-2. Add retries
+1. Add retries
 
-Will probably stop after this (probably will be 1.2.0), as there are already many libraries that fulfill many more requirements and are far less opinionated.
+Will probably stop after this, as there are already many libraries that fulfill many more requirements and are far less opinionated.
