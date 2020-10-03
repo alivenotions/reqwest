@@ -12,6 +12,24 @@ import { validateDefaults, isHeadOrGet, appendToBaseUrl } from './helpers'
 
 const bodyTransform = ['arrayBuffer', 'blob', 'formData', 'json', 'text'] as const
 
+class HTTPError extends Error {
+  status: number
+
+  constructor(message: string, code: number) {
+    super(message)
+
+    this.name = 'HTTPError'
+    this.status = code
+  }
+}
+
+class TimeoutError extends Error {
+  constructor() {
+    super('Request timed out')
+    this.name = 'TimeoutError'
+  }
+}
+
 function create({ baseUrl, interceptors, init }: Defaults) {
   return initialize({ baseUrl, interceptors, init })
 }
@@ -50,7 +68,7 @@ function instance(meta: Meta, verb: HttpVerbs) {
 
 function throwOnFailHttpCode(response: Response): Response {
   if (!response.ok) {
-    throw new Error(response.statusText)
+    throw new HTTPError(response.statusText, response.status)
   }
   return response
 }
@@ -133,13 +151,6 @@ function interceptFetchRequest(
   }
 }
 
-class TimeoutError extends Error {
-  constructor() {
-    super('Request timed out')
-    this.name = 'TimeoutError'
-  }
-}
-
 function runFetch(_fetch: typeof fetch, url: string, init: RequestInit, timeout?: number) {
   let _init = init
   if (timeout) {
@@ -156,7 +167,7 @@ function runFetch(_fetch: typeof fetch, url: string, init: RequestInit, timeout?
       if (error.name === 'AbortError') {
         throw new TimeoutError()
       }
-      throw new Error(error.message)
+      throw error
     })
   return attachBodyTransformsToResponse(response)
 }

@@ -183,6 +183,21 @@ describe('fetchy hitting the server', () => {
     done()
   })
 
+  it.only('should get the error status code on non 2xx status codes', async (done) => {
+    const url = `${server.url}/error`
+
+    expect.assertions(3)
+
+    try {
+      await fetchy.delete(url).text()
+    } catch (e) {
+      expect(e).toBeDefined()
+      expect(e.name).toBe('HTTPError')
+      expect(e.status).toBe(500)
+    }
+    done()
+  })
+
   it('should merge the configured init and the one passed with http methods', async (done) => {
     let sentHeader: any
     const api = createFetchyConfiguration({
