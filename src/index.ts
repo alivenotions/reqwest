@@ -152,25 +152,33 @@ function interceptFetchRequest(
 }
 
 function runFetch(_fetch: typeof fetch, url: string, init: RequestInit, timeout?: number) {
-  let _init = init
-  if (timeout) {
-    const controller = new AbortController()
-    _init.signal = controller.signal
+  const response = timeout
+    ? fetchWithTimeout(_fetch, url, init, new AbortController(), timeout)
+    : _fetch(url, init)
 
-    const timerId = setTimeout(() => {
-      controller.abort()
-    }, timeout)
-  }
-  const response = _fetch(url, _init)
-    .then(throwOnFailHttpCode)
-    .catch((error) => {
-      if (error.name === 'AbortError') {
-        throw new TimeoutError()
-      }
-      throw error
-    })
-  return attachBodyTransformsToResponse(response)
+  return attachBodyTransformsToResponse(response.then(throwOnFailHttpCode))
 }
+
+const fetchWithTimeout = (
+  _fetch: typeof fetch,
+  url: string,
+  init: RequestInit,
+  abortController: AbortController,
+  timeout: number
+): Promise<Response> =>
+  new Promise((resolve, reject) => {
+    const timeoutID = setTimeout(() => {
+      abortController.abort()
+      reject(new TimeoutError())
+    }, timeout)
+
+    _fetch(url, init)
+      .then(resolve)
+      .catch(reject)
+      .then(() => {
+        clearTimeout(timeoutID)
+      })
+  })
 
 export { create as createFetchyConfiguration }
 export default initialize({})

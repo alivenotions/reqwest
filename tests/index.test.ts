@@ -170,6 +170,24 @@ describe('fetchy hitting the server', () => {
     done()
   })
 
+  it('should respect the signal passed and the timeout controller for cancelling the request', async (done) => {
+    const url = `${server.url}/twoSeconds`
+
+    expect.assertions(2)
+    const controller = new AbortController()
+
+    setTimeout(() => {
+      controller.abort()
+    }, 500)
+    try {
+      await fetchy.get(url, { signal: controller.signal }, 1000).text()
+    } catch (e) {
+      expect(e).toBeDefined()
+      expect(e.name).toEqual('AbortError')
+    }
+    done()
+  })
+
   it('should throw an error on non 2xx status codes', async (done) => {
     const url = `${server.url}/error`
 
@@ -183,7 +201,7 @@ describe('fetchy hitting the server', () => {
     done()
   })
 
-  it.only('should get the error status code on non 2xx status codes', async (done) => {
+  it('should get the error status code on non 2xx status codes', async (done) => {
     const url = `${server.url}/error`
 
     expect.assertions(3)
